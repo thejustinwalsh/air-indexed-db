@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="com.thejustinwalsh.data.IDBRequest"/>
+    <classEntry path="com.thejustinwalsh.data.IDBTransaction"/>
+    <classEntry path="com.thejustinwalsh.data.IDBOpenDBRequest"/>
+    <classEntry path="com.thejustinwalsh.data.IDBFactory"/>
+    <classEntry path="com.thejustinwalsh.data.IDBEnvironment"/>
+    <classEntry path="com.thejustinwalsh.data.IDBDatabase"/>
+    <classEntry path="com.thejustinwalsh.data.IDBObjectStore"/>
+    <classEntry path="com.thejustinwalsh.data.IDBIndex"/>
+    <classEntry path="com.thejustinwalsh.data.IDBKeyRange"/>
+    <classEntry path="com.thejustinwalsh.data.IDBCursor"/>
+    <classEntry path="com.thejustinwalsh.data.IDBCursorWithValue"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>
