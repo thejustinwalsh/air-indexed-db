@@ -17,7 +17,7 @@ package com.thejustinwalsh.data
 		
 		public function get db():IDBDatabase
 		{
-			return new IDBDatabase();
+			return null;
 		}
 		
 		public function get mode():String

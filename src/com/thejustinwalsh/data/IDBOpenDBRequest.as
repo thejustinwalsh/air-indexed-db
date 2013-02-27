@@ -5,10 +5,5 @@ package com.thejustinwalsh.data
 		// Callbacks (events)
 		public var onblocked:Function;
 		public var onupgradeneeded:Function;
-		
-		public function IDBOpenDBRequest()
-		{
-			super();
-		}
 	}
 }

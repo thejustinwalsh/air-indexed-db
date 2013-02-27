@@ -1,38 +1,46 @@
 package com.thejustinwalsh.data
-{
+{	
 	public class IDBRequest
 	{
+		use namespace idb_internal;
+		
 		// Callbacks (events)
 		public var onerror:Function;
 		public var onsuccess:Function;
 		
-		public function IDBRequest()
-		{
-		}
+		// Internal interface
+		idb_internal var _result:*;
+		idb_internal var _error:Error;
+		idb_internal var _source:Object;
+		idb_internal var _transaction:IDBTransaction;
+		idb_internal var _readyState:String = "pending";
 		
+		// Public interface
 		public function get result():*
 		{
-			return null;
+			if (_readyState != "done") throw new Error("Invalid State Error");
+			return _result;
 		}
 		
 		public function get error():Error
 		{
-			return new Error();
+			if (_readyState != "done") throw new Error("Invalid State Error");
+			return idb_internal::_error;
 		}
 		
 		public function get source():Object
 		{
-			return null;
+			return _source;
 		}
 		
 		public function get transaction():IDBTransaction
 		{
-			return null;
+			return _transaction;
 		}
 		
 		public function get readyState():String
 		{
-			return "";
+			return _readyState;
 		}
 	}
 }
