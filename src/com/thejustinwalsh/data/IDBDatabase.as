@@ -1,8 +1,11 @@
 package com.thejustinwalsh.data
 {
+	import com.thejustinwalsh.sql.SQLStatementChain;
+	
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
 	import flash.data.SQLResult;
+	import flash.data.SQLStatement;
 	import flash.errors.SQLError;
 	import flash.events.SQLEvent;
 	import flash.filesystem.File;
@@ -88,7 +91,54 @@ package com.thejustinwalsh.data
 			_connection.close();
 		}
 		
+		private function versionChange(currentVersion:uint):void
+		{
+			if (_version != currentVersion) {
+				trace("TODO: Fire the versionChange event"); // TODO
+				
+				// Store the current version in the DB
+				var sql:SQLStatement = new SQLStatement();
+				sql.text = "UPDATE 'database' SET version=? WHERE name=?";
+				sql.parameters[0] = _version;
+				sql.parameters[1] = _name;
+				sql.sqlConnection = _connection;
+				sql.execute(1, new Responder(onFinalize, onOpenError));
+			}
+			else {
+				onFinalize();
+			}
+		}
+		
+		private function createSchema():void
+		{
+			var sqlChain:SQLStatementChain = new SQLStatementChain();
+			sqlChain.add(SQLHelper.TABLE_DATABASE);
+			sqlChain.add("INSERT INTO 'database' (name, version) VALUES (?, ?)", [_name, _version]); // TODO: Version change on creation?
+			sqlChain.add(SQLHelper.TABLE_OBJECT_STORE);
+			sqlChain.add(SQLHelper.TABLE_OBJECT_DATA);
+			sqlChain.add(SQLHelper.TABLE_OBJECT_STORE_INDEX);
+			sqlChain.add(SQLHelper.TABLE_INDEX_DATA);
+			sqlChain.add(SQLHelper.INDEX_OBJECT_DATA);
+			sqlChain.add(SQLHelper.TABLE_UNIQUE_INDEX_DATA);
+			sqlChain.add(SQLHelper.INDEX_UNIQUE_OBJECT_DATA);
+			sqlChain.onsuccess = onFinalize;
+			sqlChain.onerror = onOpenError;
+			sqlChain.execute(_connection);
+		}
+		
 		protected function onOpen(result:SQLEvent):void
+		{
+			// Attempt to retrieve the DB version, if unable to retrieve the version, create the schema
+			var sql:SQLStatement = new SQLStatement();
+			sql.text = "SELECT version FROM 'database' LIMIT 1;";
+			sql.sqlConnection = _connection;
+			sql.execute(1, new Responder(
+				function(result:SQLResult):void { versionChange(result.data[0].version); },
+				function(error:SQLError):void { createSchema(); }
+			));
+		}
+		
+		protected function onFinalize(result:SQLResult = null):void
 		{
 			// Set the state of the request object
 			_request._readyState = "done";

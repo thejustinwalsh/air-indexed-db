@@ -3,7 +3,9 @@ package com.thejustinwalsh.sql
 	import flash.data.SQLConnection;
 	import flash.data.SQLResult;
 	import flash.data.SQLStatement;
+	import flash.data.SQLTransactionLockType;
 	import flash.errors.SQLError;
+	import flash.events.SQLEvent;
 	import flash.net.Responder;
 
 	public class SQLStatementChain
@@ -24,7 +26,10 @@ package com.thejustinwalsh.sql
 		public function execute(connection:SQLConnection):void
 		{
 			_connection = connection;
-			onSuccess();
+			_connection.begin(SQLTransactionLockType.IMMEDIATE, new Responder(
+				function(event:SQLEvent):void { onSuccess(); },
+				function(...args):void { trace("transaction fail"); }
+			));
 		}
 		
 		protected function onSuccess(result:SQLResult = null):void
@@ -34,20 +39,30 @@ package com.thejustinwalsh.sql
 			
 			// Finish the statement chain, or fire the next statement
 			if (_statements.length == 0) {
-				if (onsuccess != null) onsuccess();
-				_connection = null; _responder = null; onsuccess = null; onerror = null;
+				_connection.commit(new Responder(
+					function(event:SQLEvent):void {
+						if (onsuccess != null) onsuccess();
+						_connection = null; _responder = null; onsuccess = null; onerror = null;
+					},
+					function(...args):void { trace("commit fail"); }
+				));
 			}
 			else {			
 				var sqlObject:Object = _statements.shift();
-				executeStatement(sqlObject.sql, sqlObject.params, sqlObject.worker);
+				executeStatement(sqlObject.text, sqlObject.params, sqlObject.worker);
 			}
 		}
 		
 		protected function onError(error:SQLError):void
 		{
-			if (onerror != null) onerror(error);
-			_statements = [];
-			_connection = null; _responder = null; onsuccess = null; onerror = null;
+			_connection.rollback(new Responder(
+				function(event:SQLEvent):void {
+					if (onerror != null) onerror(error);
+					_statements = [];
+					_connection = null; _responder = null; onsuccess = null; onerror = null;
+				},
+				function(...args):void { trace("rollback fail"); }
+			));
 		}
 		
 		protected function executeStatement(sql:String, params:Object, worker:Function):void
